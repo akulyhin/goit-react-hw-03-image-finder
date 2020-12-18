@@ -15,19 +15,19 @@ export default class App extends Component {
     loading: false,
     query: "",
     error: null,
-    page: 1,
+    page: 0,
     largeImageURL: null,
   };
 
-  componentDidMount() {
-    this.setState({ loading: true });
-    const { page, query } = this.state;
+  // componentDidMount() {
+  //   this.setState({ loading: true });
+  //   const { page, query } = this.state;
 
-    fetchPhotos(query, page)
-      .then((photos) => this.setState({ photos }))
-      .catch((error) => this.setState({ error }))
-      .finally(() => this.setState({ loading: false }));
-  }
+  //   fetchPhotos(query, page)
+  //     .then((photos) => this.setState({ photos }))
+  //     .catch((error) => this.setState({ error }))
+  //     .finally(() => this.setState({ loading: false }));
+  // }
 
   searchPhotos = (search) => {
     const { query } = search;
@@ -36,12 +36,6 @@ export default class App extends Component {
       photos: [],
       page: 1,
     });
-  };
-
-  loadMore = () => {
-    this.setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
   };
 
   onShowModal = (largeImageURL) => {
@@ -56,42 +50,33 @@ export default class App extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const prevQuery = prevState.query;
-    const { page, query } = this.state;
+    const nextQuery = this.state.query;
 
-    if (prevQuery !== query) {
-      this.setState({ loading: true });
-
-      fetchPhotos(query, page)
-        .then((photos) =>
-          this.setState((prevState) => ({
-            photos: [...prevState.photos, ...photos],
-            page,
-          }))
-        )
-        .catch((error) => this.setState({ error }))
-        .finally(() => this.setState({ loading: false }));
-    }
-
-    if (prevState.page !== page) {
-      this.setState({ loading: true });
-
-      fetchPhotos(query, page)
-        .then((photos) =>
-          this.setState((prevState) => ({
-            photos: [...prevState.photos, ...photos],
-            page,
-          }))
-        )
-        .catch((error) => this.setState({ error }))
-        .finally(() => this.setState({ loading: false }))
-        .then(() => {
-          window.scrollTo({
-            top: document.documentElement.offsetHeight,
-            behavior: "smooth",
-          });
-        });
+    if (prevQuery !== nextQuery) {
+      this.fetchPhotosService();
     }
   }
+
+  fetchPhotosService = () => {
+    const { page, query } = this.state;
+    this.setState({ loading: true });
+
+    fetchPhotos(query, page)
+      .then((photos) =>
+        this.setState((prevState) => ({
+          photos: [...prevState.photos, ...photos],
+          page: prevState.page + 1,
+        }))
+      )
+      .catch((error) => this.setState({ error }))
+      .finally(() => this.setState({ loading: false }))
+      .then(() => {
+        window.scrollTo({
+          top: document.documentElement.offsetHeight,
+          behavior: "smooth",
+        });
+      });
+  };
 
   render() {
     const { photos, loading, error, largeImageURL } = this.state;
@@ -113,7 +98,7 @@ export default class App extends Component {
             ))}
           </ImageGallery>
         )}
-        {photos.length > 11 && <Button onLoadMore={this.loadMore} />}
+        {photos.length > 11 && <Button onLoadMore={this.fetchPhotosService} />}
         {largeImageURL && (
           <Modal
             largeImageURL={largeImageURL}
