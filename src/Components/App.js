@@ -34,6 +34,7 @@ export default class App extends Component {
     this.setState({
       query: query,
       photos: [],
+      page: 1,
     });
   };
 
